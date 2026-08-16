@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Státní nabídky prodeje pozemků a nemovitostí</title>
+<style>
+:root{
+  --bg:#0f1720; --panel:#16212e; --panel2:#1d2a3a; --line:#2a3b50;
+  --text:#e8eef5; --muted:#93a4b8; --accent:#4ea1ff; --accent2:#37c98b;
+  --chip:#22344a; --shadow:0 6px 24px rgba(0,0,0,.28);
+}
+@media (prefers-color-scheme: light){
+  :root{ --bg:#f4f7fb; --panel:#ffffff; --panel2:#f0f4f9; --line:#dfe6ee;
+    --text:#16212e; --muted:#5b6b7d; --chip:#eaf1f9; --shadow:0 6px 20px rgba(20,40,70,.08);}
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
+  background:var(--bg);color:var(--text);line-height:1.45}
+header{padding:18px 16px;background:linear-gradient(135deg,#0d3b66,#1f6feb);color:#fff;
+  box-shadow:var(--shadow);position:sticky;top:0;z-index:20}
+header h1{margin:0;font-size:19px;font-weight:700}
+header .sub{opacity:.9;font-size:12.5px;margin-top:3px}
+.wrap{max-width:1200px;margin:0 auto;padding:14px 12px 60px}
+.stats{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}
+.stat{background:var(--panel);border:1px solid var(--line);border-radius:12px;
+  padding:10px 14px;min-width:110px;flex:1}
+.stat b{display:block;font-size:20px}
+.stat span{color:var(--muted);font-size:12px}
+.controls{background:var(--panel);border:1px solid var(--line);border-radius:14px;
+  padding:12px;display:grid;gap:10px;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));
+  box-shadow:var(--shadow)}
+.controls .full{grid-column:1/-1}
+label{font-size:11.5px;color:var(--muted);display:block;margin-bottom:4px;text-transform:uppercase;letter-spacing:.03em}
+input,select{width:100%;padding:9px 10px;border-radius:9px;border:1px solid var(--line);
+  background:var(--panel2);color:var(--text);font-size:14px}
+input:focus,select:focus{outline:2px solid var(--accent);border-color:var(--accent)}
+.searchrow{display:flex;gap:8px}
+.searchrow input{flex:1}
+.btn{background:var(--accent);color:#fff;border:none;border-radius:9px;padding:9px 14px;
+  font-size:14px;font-weight:600;cursor:pointer}
+.btn.sec{background:var(--chip);color:var(--text);border:1px solid var(--line)}
+.grid{display:grid;gap:12px;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));margin-top:14px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;overflow:hidden;
+  display:flex;flex-direction:column;box-shadow:var(--shadow);transition:transform .12s}
+.card:hover{transform:translateY(-2px)}
+.card .thumb{height:130px;background:var(--panel2) center/cover no-repeat;display:flex;
+  align-items:center;justify-content:center;color:var(--muted);font-size:34px}
+.card .body{padding:12px;display:flex;flex-direction:column;gap:7px;flex:1}
+.card h3{margin:0;font-size:15px;line-height:1.3}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chip{font-size:11px;background:var(--chip);border:1px solid var(--line);border-radius:20px;
+  padding:2px 9px;color:var(--text)}
+.chip.src{background:#0d3b66;color:#fff;border-color:#0d3b66}
+.chip.src.ede{background:#7a4d00}
+.chip.top{background:#b8860b;color:#fff;border:none}
+.price{font-size:18px;font-weight:700;color:var(--accent2)}
+.meta{font-size:12.5px;color:var(--muted);display:flex;flex-direction:column;gap:2px}
+.card a.detail{margin-top:auto;display:inline-block;text-align:center;background:var(--accent);
+  color:#fff;text-decoration:none;padding:9px;border-radius:9px;font-weight:600;font-size:13.5px}
+.empty{text-align:center;color:var(--muted);padding:50px 10px}
+.watch{margin-top:26px;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px}
+.watch h2{margin:0 0 8px;font-size:15px}
+.watch a{color:var(--accent);text-decoration:none}
+.watch li{margin-bottom:7px;font-size:13.5px}
+.banner{background:#7a4d00;color:#fff;padding:8px 12px;border-radius:10px;font-size:13px;margin-bottom:10px}
+footer{color:var(--muted);font-size:12px;text-align:center;margin-top:26px}
+.count{color:var(--muted);font-size:13px;margin:10px 2px}
+</style>
+</head>
+<body>
+<header>
+  <h1>🏛️ Státní nabídky prodeje pozemků a nemovitostí</h1>
+  <div class="sub" id="subtitle">Načítám…</div>
+</header>
+<div class="wrap">
+  <div id="banner"></div>
+  <div class="stats" id="stats"></div>
+
+  <div class="controls">
+    <div class="full searchrow">
+      <input id="q" placeholder="🔎 Hledat v názvu, popisu, lokalitě…">
+      <button class="btn sec" id="reset">Zrušit filtry</button>
+    </div>
+    <div><label>Zdroj</label><select id="f_zdroj"></select></div>
+    <div><label>Typ</label><select id="f_typ"></select></div>
+    <div><label>Kraj</label><select id="f_kraj"></select></div>
+    <div><label>Stav</label><select id="f_stav"></select></div>
+    <div><label>Cena od (Kč)</label><input id="f_min" type="number" inputmode="numeric" placeholder="0"></div>
+    <div><label>Cena do (Kč)</label><input id="f_max" type="number" inputmode="numeric" placeholder="∞"></div>
+    <div><label>Řazení</label>
+      <select id="f_sort">
+        <option value="new">Nejnovější</option>
+        <option value="price_asc">Cena ↑</option>
+        <option value="price_desc">Cena ↓</option>
+        <option value="end">Konec nejdříve</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="count" id="count"></div>
+  <div class="grid" id="grid"></div>
+  <div class="empty" id="empty" style="display:none">Žádná nabídka neodpovídá filtrům.</div>
+
+  <div class="watch" id="watchbox"></div>
+
+  <footer id="footer"></footer>
+</div>
+
+<script type="application/json" id="data"><!--__DATA__--></script>
+<script>
+var DB = {records:[],meta:{},watch:[]};
+try{ DB = JSON.parse(document.getElementById('data').textContent) || DB; }catch(e){}
+var R = DB.records||[], META = DB.meta||{}, WATCH = DB.watch||[];
+
+function czk(n){ if(n==null||isNaN(n)) return null;
+  return new Intl.NumberFormat('cs-CZ').format(Math.round(n))+' Kč'; }
+function esc(s){ var d=document.createElement('div'); d.textContent=s==null?'':s; return d.innerHTML; }
+function uniq(arr){ return Array.from(new Set(arr.filter(function(x){return x && x!=='';}))).sort(function(a,b){return a.localeCompare(b,'cs');}); }
+function fillSel(id,label,vals){
+  var s=document.getElementById(id); s.innerHTML='';
+  var o=document.createElement('option'); o.value=''; o.textContent=label; s.appendChild(o);
+  vals.forEach(function(v){ var x=document.createElement('option'); x.value=v; x.textContent=v; s.appendChild(x); });
+}
+
+fillSel('f_zdroj','Všechny zdroje',uniq(R.map(function(r){return r.zdroj;})));
+fillSel('f_typ','Všechny typy',uniq(R.map(function(r){return r.typ;})));
+fillSel('f_kraj','Všechny kraje',uniq(R.map(function(r){return r.kraj;})));
+fillSel('f_stav','Všechny stavy',uniq(R.map(function(r){return r.stav;})));
+
+function dateVal(s){ if(!s) return 0; var t=Date.parse(s); return isNaN(t)?0:t; }
+
+function current(){
+  var q=document.getElementById('q').value.trim().toLowerCase();
+  var fz=document.getElementById('f_zdroj').value, ft=document.getElementById('f_typ').value,
+      fk=document.getElementById('f_kraj').value, fs=document.getElementById('f_stav').value,
+      mn=parseFloat(document.getElementById('f_min').value)||0,
+      mx=parseFloat(document.getElementById('f_max').value)||0,
+      sort=document.getElementById('f_sort').value;
+  var list=R.filter(function(r){
+    if(fz && r.zdroj!==fz) return false;
+    if(ft && r.typ!==ft) return false;
+    if(fk && r.kraj!==fk) return false;
+    if(fs && r.stav!==fs) return false;
+    if(mn && (r.cena==null||r.cena<mn)) return false;
+    if(mx && (r.cena==null||r.cena>mx)) return false;
+    if(q){ var hay=((r.nazev||'')+' '+(r.popis||'')+' '+(r.okres||'')+' '+(r.kraj||'')+' '+(r.organizace||'')+' '+(r.kategorie||'')).toLowerCase();
+      if(hay.indexOf(q)<0) return false; }
+    return true;
+  });
+  list.sort(function(a,b){
+    if(sort==='price_asc') return (a.cena==null?1e18:a.cena)-(b.cena==null?1e18:b.cena);
+    if(sort==='price_desc') return (b.cena==null?-1:b.cena)-(a.cena==null?-1:a.cena);
+    if(sort==='end') return (dateVal(a.datum_do)||9e15)-(dateVal(b.datum_do)||9e15);
+    if(b.top!==a.top) return b.top?1:-1;
+    return dateVal(b.datum_od||b.aktualizovano)-dateVal(a.datum_od||a.aktualizovano);
+  });
+  return list;
+}
+
+function render(){
+  var list=current();
+  var grid=document.getElementById('grid');
+  document.getElementById('empty').style.display = list.length? 'none':'block';
+  document.getElementById('count').textContent = 'Zobrazeno '+list.length+' z '+R.length+' nabídek';
+  grid.innerHTML = list.map(function(r){
+    var price = r.cena!=null? czk(r.cena) : (r.cena_text||'Neuvedena');
+    var srcClass = r.zdroj && r.zdroj.indexOf('edesky')>=0 ? 'chip src ede' : 'chip src';
+    var thumb = r.obrazek
+      ? '<div class="thumb" style="background-image:url(\''+esc(r.obrazek)+'\')"></div>'
+      : '<div class="thumb">'+(r.typ==='Pozemek'?'🌳':r.typ==='Byt'?'🏢':r.typ==='Budova / stavba'?'🏠':'📄')+'</div>';
+    var dates = '';
+    if(r.datum_do) dates += '⏳ do '+esc(r.datum_do);
+    if(r.datum_od) dates = '📅 '+esc(r.datum_od)+(r.datum_do?' → '+esc(r.datum_do):'');
+    return '<div class="card">'+thumb+'<div class="body">'+
+      '<div class="chips"><span class="'+srcClass+'">'+esc(r.zdroj)+'</span>'+
+        '<span class="chip">'+esc(r.typ)+'</span>'+
+        (r.top?'<span class="chip top">TOP</span>':'')+
+        '<span class="chip">'+esc(r.stav)+'</span></div>'+
+      '<h3>'+esc(r.nazev)+'</h3>'+
+      '<div class="price">'+esc(price)+'</div>'+
+      '<div class="meta">'+
+        '<span>📍 '+esc(r.okres||'—')+(r.kraj&&r.kraj!=='Neuvedeno'?' · '+esc(r.kraj)+' kraj':'')+'</span>'+
+        (r.organizace?'<span>🏛️ '+esc(r.organizace)+'</span>':'')+
+        (dates?'<span>'+dates+'</span>':'')+
+      '</div>'+
+      '<a class="detail" href="'+esc(r.odkaz)+'" target="_blank" rel="noopener">Zobrazit detail →</a>'+
+    '</div></div>';
+  }).join('');
+}
+
+function renderStats(){
+  var byType={}; R.forEach(function(r){ byType[r.typ]=(byType[r.typ]||0)+1; });
+  var el=document.getElementById('stats');
+  function stat(b,s){ return '<div class="stat"><b>'+b+'</b><span>'+s+'</span></div>'; }
+  el.innerHTML =
+    stat(R.length,'nabídek celkem')+
+    stat(byType['Pozemek']||0,'pozemky')+
+    stat((byType['Budova / stavba']||0)+(byType['Byt']||0),'budovy a byty')+
+    stat(uniq(R.map(function(r){return r.kraj;})).length,'krajů');
+  var sub=document.getElementById('subtitle');
+  sub.textContent = 'Aktualizováno '+(META.generated||'—')+' · zdroje: '+(META.sources||'ÚZSVM');
+  if(META.mode==='demo'){
+    document.getElementById('banner').innerHTML='<div class="banner">⚠️ Ukázková data. Reálná data doplní automatická aktualizace.</div>';
+  }
+}
+
+function renderWatch(){
+  var box=document.getElementById('watchbox');
+  if(!WATCH.length){ box.style.display='none'; return; }
+  box.innerHTML='<h2>🔗 Další sledované zdroje (ruční kontrola)</h2><ul>'+
+    WATCH.map(function(w){ return '<li><a href="'+esc(w.url)+'" target="_blank" rel="noopener">'+esc(w.nazev)+'</a> — '+esc(w.popis)+'</li>'; }).join('')+'</ul>';
+}
+
+['q','f_zdroj','f_typ','f_kraj','f_stav','f_min','f_max','f_sort'].forEach(function(id){
+  var el=document.getElementById(id); el.addEventListener('input',render); el.addEventListener('change',render);
+});
+document.getElementById('reset').addEventListener('click',function(){
+  ['q','f_min','f_max'].forEach(function(id){document.getElementById(id).value='';});
+  ['f_zdroj','f_typ','f_kraj','f_stav'].forEach(function(id){document.getElementById(id).value='';});
+  document.getElementById('f_sort').value='new'; render();
+});
+
+document.getElementById('footer').innerHTML =
+  'Data: ÚZSVM – nabidkamajetku.gov.cz. Web se automaticky aktualizuje přes GitHub Actions. Vždy ověřte podmínky v oficiálním detailu nabídky.';
+
+renderStats(); renderWatch(); render();
+</script>
+</body>
+</html>
