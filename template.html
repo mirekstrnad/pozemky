@@ -22,6 +22,12 @@ header{padding:18px 16px;background:linear-gradient(135deg,#0d3b66,#1f6feb);colo
 header h1{margin:0;font-size:19px;font-weight:700}
 header .sub{opacity:.9;font-size:12.5px;margin-top:3px}
 .wrap{max-width:1200px;margin:0 auto;padding:14px 12px 60px}
+.updatebar{display:flex;align-items:center;gap:12px;flex-wrap:wrap;background:var(--panel);
+  border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin:12px 0;box-shadow:var(--shadow)}
+.updatebtn{background:var(--accent2);color:#04120c;font-weight:700;text-decoration:none;
+  padding:11px 18px;border-radius:10px;font-size:15px;white-space:nowrap}
+.updatebtn:hover{filter:brightness(1.06)}
+.updatehint{color:var(--muted);font-size:12.5px;flex:1;min-width:180px}
 .stats{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}
 .stat{background:var(--panel);border:1px solid var(--line);border-radius:12px;
   padding:10px 14px;min-width:110px;flex:1}
@@ -75,6 +81,12 @@ footer{color:var(--muted);font-size:12px;text-align:center;margin-top:26px}
 </header>
 <div class="wrap">
   <div id="banner"></div>
+
+  <div class="updatebar">
+    <a class="updatebtn" href="https://github.com/mirekstrnad/pozemky/actions/workflows/update.yml" target="_blank" rel="noopener">🔄 Aktualizovat data</a>
+    <span class="updatehint">Otevře GitHub → klepni na <b>Run workflow</b>. Za ~1 minutu se data obnoví; pak zde dej <b>Načíst znovu</b> (refresh).</span>
+  </div>
+
   <div class="stats" id="stats"></div>
 
   <div class="controls">
@@ -201,7 +213,7 @@ function renderStats(){
   var sub=document.getElementById('subtitle');
   sub.textContent = 'Aktualizováno '+(META.generated||'—')+' · zdroje: '+(META.sources||'ÚZSVM');
   if(META.mode==='demo'){
-    document.getElementById('banner').innerHTML='<div class="banner">⚠️ Ukázková data. Reálná data doplní automatická aktualizace.</div>';
+    document.getElementById('banner').innerHTML='<div class="banner">⚠️ Ukázková data. Reálná data doplní aktualizace.</div>';
   }
 }
 
@@ -222,7 +234,7 @@ document.getElementById('reset').addEventListener('click',function(){
 });
 
 document.getElementById('footer').innerHTML =
-  'Data: ÚZSVM – nabidkamajetku.gov.cz. Web se automaticky aktualizuje přes GitHub Actions. Vždy ověřte podmínky v oficiálním detailu nabídky.';
+  'Data: ÚZSVM – nabidkamajetku.gov.cz. Aktualizuje se ručně tlačítkem „Aktualizovat data" nahoře. Vždy ověřte podmínky v oficiálním detailu nabídky.';
 
 renderStats(); renderWatch(); render();
 </script>
