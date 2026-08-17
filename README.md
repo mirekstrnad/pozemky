@@ -23,7 +23,7 @@ GitHub kvůli bezpečnosti vyžaduje dvě povolení, která nejde zapnout kódem
 1. **Settings → Actions → General → Workflow permissions** →
    zvol **„Read and write permissions"** → Save.
 2. **Settings → Pages → Build and deployment → Source** →
-   zvol **„GitHub Actions"**.
+   zvol **„GitHub Actions"** (workflow se to většinou nastaví sám).
 
 Pak jdi do záložky **Actions**, otevři workflow *„Aktualizace nabídek…"* a klikni
 **Run workflow** (nebo počkej na ranní automatický běh). Po doběhnutí (zelená
