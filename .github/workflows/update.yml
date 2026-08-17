@@ -3,8 +3,8 @@ name: Aktualizace nabidek a publikace webu
 on:
   push:
     branches: [ main ]
-  schedule:
-    - cron: '0 5 * * *'
+# schedule:
+  #   - cron: '0 5 * * *'
   workflow_dispatch:
 
 permissions:
