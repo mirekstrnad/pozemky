@@ -25,8 +25,11 @@ header .sub{opacity:.9;font-size:12.5px;margin-top:3px}
 .updatebar{display:flex;align-items:center;gap:12px;flex-wrap:wrap;background:var(--panel);
   border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin:12px 0;box-shadow:var(--shadow)}
 .updatebtn{background:var(--accent2);color:#04120c;font-weight:700;text-decoration:none;
-  padding:11px 18px;border-radius:10px;font-size:15px;white-space:nowrap}
-.updatebtn:hover{filter:brightness(1.06)}
+  padding:11px 18px;border-radius:10px;font-size:15px;white-space:nowrap;
+  border:none;cursor:pointer;font-family:inherit;line-height:1.25;min-width:200px}
+.updatebtn:hover:not(:disabled){filter:brightness(1.06)}
+.updatebtn:disabled{opacity:.55;cursor:default}
+.updatekey{max-width:170px;flex:0 0 auto}
 .updatehint{color:var(--muted);font-size:12.5px;flex:1;min-width:180px}
 .stats{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}
 .stat{background:var(--panel);border:1px solid var(--line);border-radius:12px;
@@ -83,8 +86,10 @@ footer{color:var(--muted);font-size:12px;text-align:center;margin-top:26px}
   <div id="banner"></div>
 
   <div class="updatebar">
-    <a class="updatebtn" href="https://github.com/mirekstrnad/pozemky/actions/workflows/update.yml" target="_blank" rel="noopener">🔄 Aktualizovat data</a>
-    <span class="updatehint">Otevře GitHub → klepni na <b>Run workflow</b>. Za ~1 minutu se data obnoví; pak zde dej <b>Načíst znovu</b> (refresh).</span>
+    <button class="updatebtn" id="refreshbtn" type="button">🔄 Aktualizovat data</button>
+    <input class="updatekey" id="refreshkey" type="password" placeholder="heslo"
+           autocomplete="current-password" style="display:none">
+    <span class="updatehint" id="refreshmsg">Spustí nové načtení dat z ÚZSVM.</span>
   </div>
 
   <div class="stats" id="stats"></div>
@@ -237,6 +242,99 @@ document.getElementById('footer').innerHTML =
   'Data: ÚZSVM – nabidkamajetku.gov.cz. Aktualizuje se ručně tlačítkem „Aktualizovat data" nahoře. Vždy ověřte podmínky v oficiálním detailu nabídky.';
 
 renderStats(); renderWatch(); render();
+
+/* ---- Tlačítko "Aktualizovat data" ------------------------------------
+   POST na /api/refresh (Pages Function ve stejném origin).
+   Function drží deploy hook jako secret — v této stránce žádný není.     */
+(function(){
+  var ENDPOINT = '/api/refresh';
+  var KEYNAME  = 'pozemky_refresh_key';
+  var btn   = document.getElementById('refreshbtn');
+  var keyEl = document.getElementById('refreshkey');
+  var msg   = document.getElementById('refreshmsg');
+  if(!btn || !keyEl || !msg) return;
+
+  var busy = false;
+  var LABEL = '🔄 Aktualizovat data';
+
+  function stored(){ try{ return localStorage.getItem(KEYNAME) || ''; }catch(e){ return ''; } }
+  function store(v){ try{ localStorage.setItem(KEYNAME, v); }catch(e){} }
+  function forget(){ try{ localStorage.removeItem(KEYNAME); }catch(e){} }
+  function say(t){ msg.textContent = t; }
+  function idle(){ busy = false; btn.disabled = false; btn.textContent = LABEL; }
+
+  function askKey(t){
+    keyEl.style.display = '';
+    keyEl.value = '';
+    keyEl.focus();
+    say(t);
+  }
+
+  function countdown(sec){
+    if(sec <= 0){
+      idle();
+      say('Data by už měla být nová — obnov stránku (⌘R / F5).');
+      return;
+    }
+    btn.textContent = '⏳ ' + sec + ' s';
+    setTimeout(function(){ countdown(sec - 1); }, 1000);
+  }
+
+  function run(key){
+    busy = true;
+    btn.disabled = true;
+    btn.textContent = '⏳ Spouštím…';
+    say('Spouštím…');
+
+    fetch(ENDPOINT, { method: 'POST', headers: { 'X-Refresh-Key': key } })
+      .then(function(r){
+        return r.json().catch(function(){ return {}; })
+                .then(function(b){ return { status: r.status, body: b }; });
+      })
+      .then(function(res){
+        if(res.status === 200){
+          store(key);
+          keyEl.style.display = 'none';
+          say('Hotovo, data budou za 1–2 min, pak refresh.');
+          countdown(100);
+          return;
+        }
+        idle();
+        if(res.status === 401){
+          forget();
+          askKey('Špatné heslo — zkus to znovu.');
+        } else if(res.status === 429){
+          say('Build běžel právě teď. Zkus to za ' + (res.body.retry_after || 60) + ' s.');
+        } else {
+          say('Nepovedlo se (chyba ' + res.status + '). Zkus to za chvíli.');
+        }
+      })
+      .catch(function(){
+        idle();
+        say('Nepodařilo se spojit se serverem. Zkontroluj připojení.');
+      });
+  }
+
+  btn.addEventListener('click', function(){
+    if(busy) return;
+    var key = stored();
+    if(!key){
+      if(keyEl.style.display === 'none'){ askKey('Zadej heslo a klikni znovu.'); return; }
+      key = keyEl.value.trim();
+      if(!key){ keyEl.focus(); say('Zadej heslo a klikni znovu.'); return; }
+    }
+    run(key);
+  });
+
+  keyEl.addEventListener('keydown', function(e){
+    if(e.key === 'Enter'){ e.preventDefault(); btn.click(); }
+  });
+
+  say(stored()
+    ? 'Spustí nové načtení dat z ÚZSVM. Trvá 1–2 minuty, pak stránku obnov.'
+    : 'Spustí nové načtení dat z ÚZSVM. Poprvé si vyžádá heslo.');
+})();
+
 </script>
 </body>
 </html>
