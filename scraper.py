@@ -3,9 +3,9 @@
 """
 Skener státních nabídek prodeje pozemků a nemovitostí -> statická webová stránka.
 
-Běží v GitHub Actions: stáhne aktuální nabídky z ÚZSVM (nabidkamajetku.gov.cz)
-přes veřejné JSON API a vygeneruje samostatný `public/index.html`, který se
-publikuje na GitHub Pages. Data jsou vložena přímo do stránky (funguje bez API
+Běží na buildových serverech Cloudflare Pages: stáhne aktuální nabídky z ÚZSVM
+(nabidkamajetku.gov.cz) přes veřejné JSON API a vygeneruje samostatný
+`public/index.html`. Data jsou vložena přímo do stránky (funguje bez API
 i bez serveru).
 
 Volitelně přidá obce/kraje z edesky.cz, pokud je nastavena proměnná EDESKY_KEY.
@@ -225,7 +225,11 @@ def main():
         records.extend(ede)
         if ede: sources.append("Obce/kraje (edesky)")
 
-    meta = {"generated": _dt.datetime.now().strftime("%d.%m.%Y %H:%M"),
+    # Build bezi v UTC. Krome ctelneho retezce ulozime i ISO cas s timezone,
+    # aby si prohlizec mohl datum prepocitat do mistniho casu a spocitat stari dat.
+    _now = _dt.datetime.now(_dt.timezone.utc)
+    meta = {"generated": _now.strftime("%d.%m.%Y %H:%M"),
+            "generated_iso": _now.isoformat(),
             "sources": ", ".join(sources), "count": len(records), "mode": "live"}
 
     out_dir = os.path.dirname(args.out)
