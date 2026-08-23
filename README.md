@@ -1,47 +1,74 @@
 # Státní nabídky prodeje pozemků a nemovitostí 🏛️
 
-Automaticky aktualizovaný web, který sbírá aktuální **státní nabídky prodeje
-pozemků a nemovitostí** z portálu ÚZSVM (`nabidkamajetku.gov.cz`) a zobrazuje je
-jako přehledný dashboard s filtry (typ, kraj, cena, stav) a vyhledáváním.
+Web, který sbírá aktuální **státní nabídky prodeje pozemků a nemovitostí**
+z portálu ÚZSVM (`nabidkamajetku.gov.cz`) a zobrazuje je jako přehledný
+dashboard s filtry (typ, kraj, cena, stav) a vyhledáváním.
 
-**Bez instalace čehokoli.** Scraper běží zdarma na serverech GitHubu (GitHub
-Actions) každé ráno a výsledek publikuje na GitHub Pages — otevřeš prostě URL na
-mobilu i počítači.
+**Bez instalace čehokoli.** Scraper běží na buildových serverech Cloudflare
+a výsledek je statická stránka — otevřeš prostě URL na mobilu i počítači.
 
 ## 🌐 Adresa webu
 
-Po prvním úspěšném běhu bude web zde:
-
 ```
-https://mirekstrnad.github.io/pozemky/
+https://pozemky.pages.dev
 ```
 
-## ⚙️ Jednorázové nastavení (2 kroky, ~1 minuta)
+## 🔄 Aktualizace dat
 
-GitHub kvůli bezpečnosti vyžaduje dvě povolení, která nejde zapnout kódem:
+Nahoře na webu je tlačítko **„Aktualizovat data"**. Kliknutím spustí nový
+build (scraper znovu stáhne data z ÚZSVM a přegeneruje stránku). Trvá to
+1–2 minuty, pak stačí stránku obnovit.
 
-1. **Settings → Actions → General → Workflow permissions** →
-   zvol **„Read and write permissions"** → Save.
-2. **Settings → Pages → Build and deployment → Source** →
-   zvol **„GitHub Actions"** (workflow se to většinou nastaví sám).
+Poprvé si tlačítko vyžádá heslo, dál si ho pamatuje v `localStorage`
+prohlížeče, takže je to na jedno kliknutí. Po kliknutí se zablokuje
+a odpočítává, aby nešlo omylem spustit dva buildy za sebou.
 
-Pak jdi do záložky **Actions**, otevři workflow *„Aktualizace nabídek…"* a klikni
-**Run workflow** (nebo počkej na ranní automatický běh). Po doběhnutí (zelená
-fajfka) je web živý na adrese výše.
+Každý `git push` do větve `main` spustí nasazení také.
 
-## 🔁 Jak často se aktualizuje
+## 🔐 Jak je to udělané
 
-Každý den v **05:00 UTC** (07:00 letního / 06:00 zimního času v ČR). Frekvenci
-změníš v `.github/workflows/update.yml` v řádku `cron`. Kdykoli můžeš spustit
-ručně tlačítkem **Run workflow**.
+Deploy hook je bearer token — kdo ho najde ve zdroji stránky, může spouštět
+buildy. Proto ve stránce **žádný není**.
+
+Místo toho běží `functions/api/refresh.js` jako Pages Function ve stejném
+originu. Ta drží hook jako secret projektu a přijme požadavek jen s správným
+heslem v hlavičce `X-Refresh-Key`. Protože jde o stejný origin, není potřeba
+CORS a tlačítko čte skutečnou odpověď (hotovo / špatné heslo / limit).
+
+### Potřebné proměnné
+
+Cloudflare dashboard → projekt `pozemky` → **Settings → Variables and secrets**,
+obojí typu **Secret**:
+
+| Název | Hodnota |
+|---|---|
+| `DEPLOY_HOOK` | URL deploy hooku `manual` (Settings → Builds & deployments) |
+| `REFRESH_PASSWORD` | heslo, které se zadává na webu |
+
+Bez nich vrací endpoint `500 {"error":"not_configured"}`. Změna proměnných
+se projeví až **při dalším nasazení**.
+
+### Volitelně: limit na frekvenci buildů
+
+Function počítá s KV bindingem pojmenovaným `RL`. Když se v **Settings →
+Bindings** přidá KV namespace pod tímto jménem, automaticky se zapne limit
+1 build / 5 minut (odpověď `429` s `retry_after`). Bez bindingu se limit
+přeskočí — v kódu není co měnit.
+
+## ⚙️ Konfigurace buildu
+
+| Položka | Hodnota |
+|---|---|
+| Framework preset | None |
+| Build command | `pip install -r requirements.txt && python scraper.py --out public/index.html` |
+| Build output directory | `public` |
+| Production branch | `main` |
+| `PYTHON_VERSION` | `3.11` — **nutné**, jinak build image nenajde správný `python`/`pip` |
 
 ## 🏘️ Obce a kraje (volitelné)
 
-Pro doplnění záměrů prodeje z úředních desek obcí a krajů přes **edesky.cz**:
-
-1. Vyžádej si API klíč na edesky.cz.
-2. **Settings → Secrets and variables → Actions → New repository secret**,
-   název `EDESKY_KEY`, hodnota = tvůj klíč.
+Pro doplnění záměrů prodeje z úředních desek obcí a krajů přes **edesky.cz**
+přidej proměnnou `EDESKY_KEY` s API klíčem (stejná sekce Variables and secrets).
 
 Modul je „nejlepší snaha" — endpoint/pole případně dolaď ve funkci
 `fetch_edesky` v `scraper.py`.
@@ -51,8 +78,9 @@ Modul je „nejlepší snaha" — endpoint/pole případně dolaď ve funkci
 | Soubor | Účel |
 |---|---|
 | `scraper.py` | Stáhne data z ÚZSVM a vygeneruje `public/index.html` |
-| `template.html` | Šablona dashboardu (vzhled + filtry) |
-| `.github/workflows/update.yml` | Denní běh a publikace na Pages |
+| `template.html` | Šablona dashboardu (vzhled, filtry, tlačítko aktualizace) |
+| `functions/api/refresh.js` | Pages Function — chráněné spuštění buildu |
+| `requirements.txt` | Python závislosti pro build |
 | `public/index.html` | Vygenerovaný web (přepisuje se při každém běhu) |
 
 ## ℹ️ Zdroje a poznámky
