@@ -224,12 +224,14 @@ function staleBanner(){
   var d=generatedDate();
   if(!d) return '';
   var dny=Math.floor((Date.now()-d.getTime())/86400000);
-  if(dny<7) return '';
+  // Data se obnovují automaticky 1. den v měsíci, takže do ~5 týdnů jsou "čerstvá".
+  // Oranžově = minulý měsíční běh zřejmě neproběhl, červeně = dva běhy v řadě.
+  if(dny<35) return '';
   var z=dny%10, st=dny%100, slovo;
   if(z===1 && st!==11) slovo='den';
   else if(z>=2 && z<=4 && (st<12 || st>14)) slovo='dny';
   else slovo='dní';
-  return '<div class="banner'+(dny>=30?' stale':'')+'">⚠️ Data jsou '+dny+' '+slovo+
+  return '<div class="banner'+(dny>=60?' stale':'')+'">⚠️ Data jsou '+dny+' '+slovo+
     ' stará. Klepni nahoře na <b>Aktualizovat data</b>.</div>';
 }
 

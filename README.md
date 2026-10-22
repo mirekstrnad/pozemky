@@ -25,6 +25,16 @@ a odpočítává, aby nešlo omylem spustit dva buildy za sebou.
 
 Každý `git push` do větve `main` spustí nasazení také.
 
+### Automaticky jednou měsíčně
+
+Workflow `.github/workflows/monthly-refresh.yml` udělá **1. den v měsíci
+(04:17 UTC)** prázdný commit do `main`, na který Cloudflare zareaguje novým
+buildem. Nepotřebuje žádný secret v GitHubu. Jde spustit i ručně
+(Actions → *Mesicni aktualizace dat* → Run workflow).
+
+Varovný pruh nad výpisem se zobrazí až po **35 dnech** (oranžově — měsíční
+běh zřejmě neproběhl) a po **60 dnech** červeně.
+
 ## 🔐 Jak je to udělané
 
 Deploy hook je bearer token — kdo ho najde ve zdroji stránky, může spouštět

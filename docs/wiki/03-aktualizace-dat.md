@@ -30,5 +30,10 @@ nabídka ÚZSVM.
 
 - Na webu tlačítko **Aktualizovat data**, počkat 1–2 minuty a obnovit stránku.
 - Nebo jakýkoli `git push` do `main` (Cloudflare build se spustí sám).
-- Žádná automatická aktualizace není — denní cron v GitHub Actions je od
-  17. 8. 2026 zakomentovaný. Proto stránka může hlásit stará data.
+- Automaticky **1. den v měsíci** (04:17 UTC): workflow
+  `.github/workflows/monthly-refresh.yml` udělá prázdný commit do `main`,
+  Cloudflare na push spustí build. Bez secretů v GitHubu; jde spustit i ručně
+  přes *Run workflow*. (Denní cron byl 17. 8. 2026 vypnutý; měsíční plán
+  zapnutý 22. 10. 2026.)
+- Varovný pruh nad výpisem: od 35 dní oranžový (měsíční běh zřejmě selhal),
+  od 60 dní červený.

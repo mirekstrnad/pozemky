@@ -47,6 +47,7 @@ Tlačítko lokálně nefunguje (`/api/refresh` je Pages Function); šlo by přes
 |---|---|
 | 16. 8. 2026 | Založení: placeholder, šablona dashboardu, scraper ÚZSVM a generátor stránky, README |
 | 17. 8. 2026 | GitHub Actions workflow — build a nasazení na GitHub Pages; denní cron 5:00 UTC hned vypnutý, aktualizace ručně (workflow_dispatch) |
+| 22. 10. 2026 | Měsíční automatická aktualizace: `monthly-refresh.yml` dělá 1. den v měsíci prázdný commit do `main` → Cloudflare build. Varovný pruh posunut na 35/60 dní |
 | 23. 8. 2026 | Přechod na **Cloudflare Pages**: `requirements.txt`, Pages Function `/api/refresh` (heslo, deploy hook jako secret, omezení frekvence přes KV), skutečné tlačítko Aktualizovat data místo odkazu na Actions, nové README |
 | 23. 8. 2026 | `generated_iso` v metadatech (čas byl o 2 h posunutý, build běží v UTC), čas v místním čase, varovný pruh po 7 / 30 dnech |
 | 22. 10. 2026 | Přidána dokumentace pro AI modely (`AGENTS.md`, `docs/wiki/`) |

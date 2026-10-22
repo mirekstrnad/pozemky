@@ -19,6 +19,8 @@ Web: https://pozemky.pages.dev (Cloudflare Pages, projekt `pozemky`).
 - `public/index.html` — **generuje se buildem a při každém buildu se přepíše.**
   Neupravovat ručně; v repu je jen placeholder.
 - `.github/workflows/update.yml` — starý build na GitHub Pages (viz níž).
+- `.github/workflows/monthly-refresh.yml` — 1. den v měsíci prázdný commit do
+  `main`, čímž spustí build na Cloudflare (jediná automatická aktualizace).
 
 ## Build a nasazení
 
